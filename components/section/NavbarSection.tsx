@@ -63,7 +63,7 @@ const Navbar = () => {
             <ul className="flex items-center gap-4 text-primary font-semibold">
               <li>
                 <button
-                  className="px-4 py-2 rounded-md hover:bg-primary hover:text-white transition-all duration-150"
+                  className="px-4 py-2 rounded-md hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
                   onClick={() => scrollToSection("beranda")}
                 >
                   Beranda
@@ -71,7 +71,7 @@ const Navbar = () => {
               </li>
               <li>
                 <button
-                  className="px-4 py-2 rounded-md hover:bg-primary hover:text-white transition-all duration-150"
+                  className="px-4 py-2 rounded-md hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
                   onClick={() => scrollToSection("tentang-kami")}
                 >
                   Tentang kami
@@ -79,10 +79,18 @@ const Navbar = () => {
               </li>
               <li>
                 <button
-                  className="px-4 py-2 rounded-md hover:bg-primary hover:text-white transition-all duration-150"
-                  onClick={() => scrollToSection("panduan-faq")}
+                  className="px-4 py-2 rounded-md hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
+                  onClick={() => scrollToSection("panduan")}
                 >
-                  Panduan Pengguna & FAQ
+                  Panduan Pengguna
+                </button>
+              </li>
+              <li>
+                <button
+                  className="px-4 py-2 rounded-md hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
+                  onClick={() => scrollToSection("faq")}
+                >
+                  FAQ
                 </button>
               </li>
               <li>
@@ -112,7 +120,7 @@ const Navbar = () => {
             <ul className="flex flex-col gap-2 text-primary font-semibold">
               <li>
                 <button
-                  className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary hover:text-white transition-all duration-150"
+                  className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
                   onClick={() => scrollToSection("beranda")}
                 >
                   Beranda
@@ -120,7 +128,7 @@ const Navbar = () => {
               </li>
               <li>
                 <button
-                  className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary hover:text-white transition-all duration-150"
+                  className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
                   onClick={() => scrollToSection("tentang-kami")}
                 >
                   Tentang kami
@@ -128,10 +136,18 @@ const Navbar = () => {
               </li>
               <li>
                 <button
-                  className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary hover:text-white transition-all duration-150"
-                  onClick={() => scrollToSection("panduan-faq")}
+                  className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
+                  onClick={() => scrollToSection("panduan")}
                 >
-                  Panduan Pengguna & FAQ
+                  Panduan Pengguna
+                </button>
+              </li>
+              <li>
+                <button
+                  className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
+                  onClick={() => scrollToSection("faq")}
+                >
+                  FAQ
                 </button>
               </li>
               <li className="px-4 py-3">

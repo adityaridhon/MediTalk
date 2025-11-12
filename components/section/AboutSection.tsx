@@ -12,13 +12,13 @@ const cardAbout = [
   },
   {
     icon: <AiOutlineHistory size={25} />,
-    name: "RINGKASAN",
-    desc: "Kamu dapat melihat ringkasan konsultasi yang sudah kamu lakukan.",
+    name: "RIWAYAT",
+    desc: "Kamu dapat melihat riwayat konsultasi yang sudah kamu lakukan.",
   },
   {
-    icon: <MdOutlineTranscribe size={25} />,
-    name: "TRANSKRIP",
-    desc: "Kamu dapat melihat transkrip konsultasimu dengan agen kami.",
+    icon: <AiOutlineHistory size={25} />,
+    name: "RINGKASAN",
+    desc: "Kamu dapat melihat ringkasan konsultasi yang kamu lakukan.",
   },
 ];
 
@@ -32,9 +32,9 @@ const AboutSection = () => {
         <Image
           src="/assets/consult.svg"
           alt="About Us"
-          //   layout="responsive"
           width={1000}
           height={1200}
+          className="hover:scale-105 transition-transform duration-300"
         />
       </div>
       <div className="capt">

@@ -5,7 +5,7 @@ const TutorialSection = () => {
   return (
     <section
       className="flex flex-col justify-center items-center max-w-5xl mx-auto my-20 px-4"
-      id="panduan-faq"
+      id="panduan"
     >
       <h1 className="text-3xl md:text-4xl font-bold text-center ">
         Panduan <span className="text-primary">penggunaan</span>

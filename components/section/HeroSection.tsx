@@ -12,10 +12,18 @@ const HeroSection = () => {
   const { data: session } = useSession();
 
   const scrollToAbout = () => {
-    const aboutSection = document.getElementById("tentang-kami");
-    if (aboutSection) {
-      aboutSection.scrollIntoView({
-        block: "start",
+    const element = document.getElementById("tentang-kami");
+    if (element) {
+      const navbar = document.querySelector(".sticky");
+      const navbarHeight = navbar
+        ? navbar.getBoundingClientRect().height + 40
+        : 120;
+      const elementPosition = element.offsetTop;
+      const offsetPosition = elementPosition - navbarHeight;
+
+      window.scrollTo({
+        behavior: "smooth",
+        top: Math.max(0, offsetPosition),
       });
     }
   };
@@ -44,7 +52,7 @@ const HeroSection = () => {
           <div className="flex flex-wrap justify-center md:justify-start gap-4">
             {!session ? (
               <LoginDialog>
-                <Button>Get Started</Button>
+                <Button>Mulai sekarang</Button>
               </LoginDialog>
             ) : (
               <Link href="/consultation">
@@ -52,7 +60,7 @@ const HeroSection = () => {
               </Link>
             )}
             <Button variant="outline" onClick={scrollToAbout}>
-              View More
+              Lihat selengkapnya
             </Button>
           </div>
         </div>
