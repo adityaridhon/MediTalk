@@ -3,6 +3,8 @@
 **MediTalk** adalah website yang memunginkan pengguna untuk berkonsultai dengan agen AI tentang gejala medis yang dialami dengan komunikasi real-time berbasis suara.  
 Dibangun dengan **Next.js 15**, **Auth.js**, **Prisma**, and **ShadCN UI**.
 
+![LandingPage](public/assets/landing.png "MediTalk")
+
 ---
 
 ## 🚀 Fitur Utama (Rencana)
