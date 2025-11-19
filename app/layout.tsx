@@ -10,7 +10,7 @@ const fontTitle = Funnel_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "MediTalk - Beranda",
+  title: "MediTalk ",
   description: "Aplikasi konsultasi gejala medis berbasis AI",
   icons: {
     icon: "/assets/logo.png",

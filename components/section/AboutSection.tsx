@@ -1,6 +1,10 @@
 import React from "react";
 import Image from "next/image";
-import { AiFillSafetyCertificate, AiOutlineHistory } from "react-icons/ai";
+import {
+  AiFillSafetyCertificate,
+  AiOutlineHistory,
+  AiFillRead,
+} from "react-icons/ai";
 import { MdOutlineTranscribe } from "react-icons/md";
 
 const cardAbout = [
@@ -16,7 +20,7 @@ const cardAbout = [
     desc: "Kamu dapat melihat riwayat konsultasi yang sudah kamu lakukan.",
   },
   {
-    icon: <AiOutlineHistory size={25} />,
+    icon: <AiFillRead size={25} />,
     name: "RINGKASAN",
     desc: "Kamu dapat melihat ringkasan konsultasi yang kamu lakukan.",
   },
@@ -34,7 +38,6 @@ const AboutSection = () => {
           alt="About Us"
           width={1000}
           height={1200}
-          className="hover:scale-105 transition-transform duration-300"
         />
       </div>
       <div className="capt">
@@ -50,11 +53,11 @@ const AboutSection = () => {
             Data kamu kami simpan dengan aman dan rahasia.
           </p>
         </div>
-        <div className="card-wrap grid grid-cols-1 md:grid-cols-3 place-items-center mx-auto mt-2 gap-6 ">
+        <div className="card-wrap grid grid-cols-1 md:grid-cols-3 place-items-center mx-auto mt-6 gap-6 ">
           {cardAbout.map((c, i) => (
             <div
               key={i}
-              className="relative bg-white p-5 rounded-lg mt-8 md:w-52 md:h-36 w-80 text-center shadow-sm transition-all duration-300 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0_#22c55e]"
+              className="relative bg-white p-5 rounded-lg mt-8 md:w-52 md:h-36 w-80 text-center shadow-sm transition-all duration-300 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0_#22c55e] cursor-pointer"
             >
               {/* Icon */}
               <div className="absolute left-1/2 -top-6 transform -translate-x-1/2 bg-primary/10 border-2 border-primary text-primary rounded-full p-3">

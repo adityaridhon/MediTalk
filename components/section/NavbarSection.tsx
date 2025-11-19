@@ -18,7 +18,7 @@ const Navbar = () => {
     if (element) {
       const navbar = document.querySelector(".sticky");
       const navbarHeight = navbar
-        ? navbar.getBoundingClientRect().height + 40
+        ? navbar.getBoundingClientRect().height + 50
         : 120;
       const elementPosition = element.offsetTop;
       const offsetPosition = elementPosition - navbarHeight;
@@ -52,7 +52,7 @@ const Navbar = () => {
             <Image src="/assets/logo.png" alt="Logo" width={40} height={40} />
             <button
               onClick={scrollToTop}
-              className="text-primary font-bold text-2xl hover:text-primary/80 transition-colors"
+              className="text-primary font-bold text-2xl hover:text-primary/80 transition-colors cursor-pointer"
             >
               MediTalk
             </button>

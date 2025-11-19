@@ -19,7 +19,7 @@ export default function AuthButton({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
+  // Close ripdiwon
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -63,23 +63,23 @@ export default function AuthButton({
     );
   }
 
-  // Mobile version - simple buttons
+  // Mobile
   if (isMobile) {
     return (
       <div className="flex flex-col gap-2 w-full">
         <Link href="/consultation" onClick={handleConsultation}>
           <Button className="w-full bg-primary hover:bg-primary/90">
-            💬 Konsultasi
+            Konsultasi
           </Button>
         </Link>
         <Button variant="outline" onClick={handleSignOut} className="w-full">
-          🚪 Logout
+          Logout
         </Button>
       </div>
     );
   }
 
-  // Desktop version - dropdown
+  // Desktop
   return (
     <div className="relative" ref={dropdownRef}>
       <Button
@@ -120,7 +120,7 @@ export default function AuthButton({
 
             <button
               onClick={handleSignOut}
-              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
             >
               Logout
             </button>

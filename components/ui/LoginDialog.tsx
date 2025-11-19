@@ -34,7 +34,6 @@ const LoginDialog = ({ children }: LoginDialogProps) => {
 
   return (
     <Dialog>
-      {/* Trigger: bisa berupa button apapun yang dikirim dari parent */}
       <DialogTrigger asChild>{children}</DialogTrigger>
 
       {/* Isi popupp */}
@@ -70,11 +69,7 @@ const LoginDialog = ({ children }: LoginDialogProps) => {
         </div>
 
         <div className="text-center text-xs text-gray-500 mt-4">
-          Dengan login, Anda menyetujui{" "}
-          <span className="text-primary cursor-pointer hover:underline">
-            Syarat & Ketentuan
-          </span>{" "}
-          kami
+          Dengan login, Anda menyetujui Syarat & Ketentuan kami
         </div>
       </DialogContent>
     </Dialog>

@@ -18,17 +18,48 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const ConsultationPage = () => {
   const [gejala, setGejala] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const { data: session, status } = useSession();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (gejala.trim()) {
-      const encodedGejala = encodeURIComponent(gejala);
-      router.push(`/consultation/medical-agent?gejala=${encodedGejala}`);
+      try {
+        const response = await fetch("/api/consultation", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            gejala: gejala.trim(),
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          const consultationId = result.data.id;
+
+          // Redirect ke medical-agent dengan ID consultation
+          router.push(`/consultation/medical-agent/${consultationId}`);
+          setIsOpen(false);
+        } else {
+          const error = await response.json();
+          console.error("Error creating consultation:", error);
+          if (error.error === "Unauthorized - Please login first") {
+            alert("Silakan login terlebih dahulu untuk membuat konsultasi.");
+          } else {
+            alert("Gagal membuat konsultasi. Silakan coba lagi.");
+          }
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Terjadi kesalahan. Silakan coba lagi.");
+      }
     }
   };
 

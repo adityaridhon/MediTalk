@@ -1,183 +1,195 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import Vapi from "@vapi-ai/web";
 import { TiArrowLeft } from "react-icons/ti";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FaUserDoctor, FaHeadset, FaStop } from "react-icons/fa6";
-import { IoMdCall, IoMdSend } from "react-icons/io";
+import {
+  FaUserDoctor,
+  FaHeadset,
+  FaStop,
+  FaMicrophone,
+  FaMicrophoneSlash,
+} from "react-icons/fa6";
+import { IoMdCall } from "react-icons/io";
 import { ImConnection } from "react-icons/im";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
+interface Consultation {
+  id: string;
+  gejala: string;
+  conversation: any[];
+  report: any;
+  createdBy: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
 const MedicalAgentPage = () => {
-  const [gejala, setGejala] = useState("");
+  const [consultation, setConsultation] = useState<Consultation | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isConsultationStarted, setIsConsultationStarted] = useState(false);
   const [transcriptMessages, setTranscriptMessages] = useState<
     Array<{
       id: number;
-      speaker: "Agen AI Medis" | string;
+      speaker: "assistant" | "user";
       content: string;
       timestamp: string;
       isVisible: boolean;
     }>
   >([]);
-  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
-  const [isConversationActive, setIsConversationActive] = useState(false);
+  const [isCallActive, setIsCallActive] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState("Tidak Terhubung");
   const [timer, setTimer] = useState("00:00");
   const transcriptEndRef = useRef<HTMLDivElement>(null);
+  const [vapi, setVapi] = useState<Vapi | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
 
-  const searchParams = useSearchParams();
+  const params = useParams();
+  const consultationId = params.id as string;
   const { data: session, status } = useSession();
 
+  // Initialize Vapi
   useEffect(() => {
-    const gejalaDariURL = searchParams.get("gejala");
-    if (gejalaDariURL) {
-      setGejala(decodeURIComponent(gejalaDariURL));
+    const initVapi = async () => {
+      try {
+        // Check WebRTC support first
+        if (!window.RTCPeerConnection) {
+          console.error("WebRTC not supported in this browser");
+          setConnectionStatus("Error - Browser tidak mendukung WebRTC");
+          alert(
+            "Browser Anda tidak mendukung WebRTC. Silakan gunakan Chrome, Firefox, atau Safari terbaru."
+          );
+          return;
+        }
+
+        console.log("Environment check passed, initializing Vapi...");
+
+        // Use hardcoded API key directly (sesuai dokumentasi)
+        const apiKey = "b2c71cbb-957c-4d3c-a48a-28f38ffe3c4a";
+        console.log(
+          "Initializing Vapi with API key:",
+          apiKey.substring(0, 8) + "..."
+        );
+
+        const vapiInstance = new Vapi(apiKey);
+        setVapi(vapiInstance);
+        console.log("Vapi instance created successfully");
+
+        // Event listeners (sesuai dokumentasi)
+        vapiInstance.on("call-start", () => {
+          console.log("Call started");
+          setIsCallActive(true);
+          setConnectionStatus("Terhubung - Voice Call Aktif");
+        });
+
+        vapiInstance.on("call-end", () => {
+          console.log("Call ended");
+          setIsCallActive(false);
+          setConnectionStatus("Tidak Terhubung - Call Berakhir");
+        });
+
+        vapiInstance.on("message", (message) => {
+          console.log("Vapi message received:", message);
+
+          if (message.type === "transcript") {
+            console.log(`${message.role}: ${message.transcript}`);
+
+            const timestamp = new Date().toLocaleTimeString("id-ID", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+
+            const newMessage = {
+              id: Date.now(),
+              speaker: message.role as "assistant" | "user",
+              content: message.transcript,
+              timestamp,
+              isVisible: true,
+            };
+
+            setTranscriptMessages((prev) => [...prev, newMessage]);
+          }
+        });
+
+        vapiInstance.on("error", (error) => {
+          console.error("Vapi error:", error);
+
+          // Simple error handling
+          let errorMessage = "Connection failed";
+          if (error) {
+            errorMessage = String(error);
+          }
+
+          setConnectionStatus(`Error - ${errorMessage}`);
+          console.log("Setting error status:", errorMessage);
+        });
+
+        console.log("Vapi initialized successfully");
+        setConnectionStatus("Vapi Siap - Klik untuk memulai");
+      } catch (error) {
+        console.error("Error initializing Vapi:", error);
+        setConnectionStatus("Error - Gagal inisialisasi Vapi");
+
+        if (error && error.toString().includes("WebRTC")) {
+          alert(
+            "Browser Anda tidak mendukung WebRTC. Silakan gunakan Chrome, Firefox, atau Safari terbaru."
+          );
+        }
+      }
+    };
+
+    // Only initialize if running in browser and WebRTC is supported
+    if (typeof window !== "undefined") {
+      initVapi();
     }
-  }, [searchParams]);
 
-  // Transkrip dummy
-  const conversationScript = [
-    {
-      id: 1,
-      speaker: "Agen AI Medis",
-      content: `Halo ${
-        session?.user?.name || "Pasien"
-      }, selamat pagi. Saya Agen AI Medis, asisten yang akan membantu konsultasi Anda hari ini.`,
-      timestamp: "10:00",
-      isVisible: false,
-    },
-    {
-      id: 2,
-      speaker: session?.user?.name || "Pasien",
-      content:
-        "Pagi dok, terima kasih. Saya memang sedang ada keluhan kesehatan.",
-      timestamp: "10:00",
-      isVisible: false,
-    },
-    {
-      id: 3,
-      speaker: "Agen AI Medis",
-      content: `Baik, saya sudah melihat gejala yang Anda laporkan: "${
-        gejala || "gejala yang disampaikan"
-      }". Bisakah Anda ceritakan lebih detail kapan gejala ini mulai muncul?`,
-      timestamp: "10:01",
-      isVisible: false,
-    },
-    {
-      id: 4,
-      speaker: session?.user?.name || "Pasien",
-      content:
-        "Gejala ini sudah saya rasakan sekitar 3-4 hari yang lalu dok. Awalnya ringan, tapi sekarang semakin mengganggu aktivitas.",
-      timestamp: "10:01",
-      isVisible: false,
-    },
-    {
-      id: 5,
-      speaker: "Agen AI Medis",
-      content:
-        "Saya mengerti. Apakah ada gejala tambahan yang menyertai? Misalnya demam, mual, atau gejala lainnya?",
-      timestamp: "10:02",
-      isVisible: false,
-    },
-    {
-      id: 6,
-      speaker: session?.user?.name || "Pasien",
-      content:
-        "Iya dok, saya juga merasa lemas dan nafsu makan menurun. Terkadang juga sedikit pusing.",
-      timestamp: "10:02",
-      isVisible: false,
-    },
-    {
-      id: 7,
-      speaker: "Agen AI Medis",
-      content:
-        "Terima kasih informasinya. Berdasarkan gejala yang Anda sampaikan, saya akan memberikan beberapa saran awal...",
-      timestamp: "10:03",
-      isVisible: false,
-    },
-    {
-      id: 8,
-      speaker: session?.user?.name || "Pasien",
-      content: "Baik dok, saya mendengarkan.",
-      timestamp: "10:03",
-      isVisible: false,
-    },
-    {
-      id: 9,
-      speaker: "Agen AI Medis",
-      content:
-        "Pertama, pastikan Anda cukup istirahat dan minum air putih yang cukup. Kedua, hindari makanan yang terlalu pedas atau berlemak.",
-      timestamp: "10:04",
-      isVisible: false,
-    },
-    {
-      id: 10,
-      speaker: session?.user?.name || "Pasien",
-      content: "Apakah perlu minum obat dok? Atau ada pantangan khusus?",
-      timestamp: "10:04",
-      isVisible: false,
-    },
-    {
-      id: 11,
-      speaker: "Agen AI Medis",
-      content:
-        "Untuk sementara, Anda bisa minum obat pereda nyeri ringan jika diperlukan. Namun jika gejala berlanjut lebih dari seminggu, sebaiknya konsultasi ke dokter secara langsung.",
-      timestamp: "10:05",
-      isVisible: false,
-    },
-    {
-      id: 12,
-      speaker: session?.user?.name || "Pasien",
-      content:
-        "Baik dok, terima kasih atas sarannya. Apakah ada yang perlu saya perhatikan khusus?",
-      timestamp: "10:05",
-      isVisible: false,
-    },
-    {
-      id: 13,
-      speaker: "Agen AI Medis",
-      content:
-        "Pantau suhu tubuh Anda. Jika demam tinggi (>38.5°C), segera ke fasilitas kesehatan terdekat. Semoga lekas sembuh!",
-      timestamp: "10:06",
-      isVisible: false,
-    },
-  ];
+    return () => {
+      if (vapi) {
+        try {
+          vapi.stop();
+        } catch (error) {
+          console.error("Error stopping Vapi:", error);
+        }
+      }
+    };
+  }, []);
 
+  // Fetch consultation data
+  useEffect(() => {
+    const fetchConsultation = async () => {
+      try {
+        const response = await fetch(`/api/consultation/${consultationId}`);
+        if (response.ok) {
+          const result = await response.json();
+          setConsultation(result.data);
+        } else {
+          console.error("Failed to fetch consultation");
+        }
+      } catch (error) {
+        console.error("Error fetching consultation:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (consultationId) {
+      fetchConsultation();
+    }
+  }, [consultationId]);
+
+  // Auto scroll to latest message
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [transcriptMessages]);
-
-  // Simulasi konsul
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (
-      isConversationActive &&
-      currentMessageIndex < conversationScript.length
-    ) {
-      interval = setTimeout(() => {
-        const currentMessage = conversationScript[currentMessageIndex];
-        setTranscriptMessages((prev) => [
-          ...prev,
-          { ...currentMessage, isVisible: true },
-        ]);
-        setCurrentMessageIndex((prev) => prev + 1);
-      }, 850 + Math.random() * 100);
-    } else if (
-      currentMessageIndex >= conversationScript.length &&
-      isConversationActive
-    ) {
-      setIsConversationActive(false);
-      setConnectionStatus("Tidak Terhubung - Konsultasi Selesai");
-    }
-
-    return () => clearTimeout(interval);
-  }, [isConversationActive, currentMessageIndex, conversationScript]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -197,43 +209,74 @@ const MedicalAgentPage = () => {
     return () => clearInterval(interval);
   }, [isConsultationStarted]);
 
-  const startConsultation = () => {
-    setIsConsultationStarted(true);
-    setConnectionStatus("Terhubung - Konsultasi Berlangsung");
-    setIsConversationActive(true);
-    setCurrentMessageIndex(0);
-    setTranscriptMessages([]);
+  const startConsultation = async () => {
+    if (!vapi) {
+      alert("Vapi belum siap. Silakan refresh halaman dan coba lagi.");
+      return;
+    }
 
-    setTimeout(() => {
-      const firstMessage = conversationScript[0];
-      setTranscriptMessages([{ ...firstMessage, isVisible: true }]);
-      setCurrentMessageIndex(1);
-    }, 2000);
+    try {
+      setIsConsultationStarted(true);
+      setConnectionStatus("Menghubungkan...");
+      setTranscriptMessages([]);
+
+      console.log("Requesting microphone permission...");
+
+      // Start voice conversation (sesuai dokumentasi)
+      const assistantId = "a48642b1-f25e-4cda-8e10-89fed5366113";
+      console.log("Starting Vapi call with assistant ID:", assistantId);
+
+      vapi.start(assistantId);
+      console.log("Vapi call started successfully");
+    } catch (error) {
+      console.error("Error starting Vapi call:", error);
+      setConnectionStatus("Gagal terhubung - Coba lagi");
+      alert("Gagal memulai konsultasi. Coba lagi.");
+      setIsConsultationStarted(false);
+    }
   };
 
   const stopConsultation = () => {
-    setIsConversationActive(false);
+    if (vapi && isCallActive) {
+      vapi.stop();
+    }
+    setIsCallActive(false);
     setConnectionStatus("Tidak Terhubung - Konsultasi Dihentikan");
   };
 
-  const restartConsultation = () => {
-    setCurrentMessageIndex(0);
-    setTranscriptMessages([]);
-    setIsConversationActive(true);
-    setConnectionStatus("Terhubung - Konsultasi Berlangsung");
-
-    setTimeout(() => {
-      const firstMessage = conversationScript[0];
-      setTranscriptMessages([{ ...firstMessage, isVisible: true }]);
-      setCurrentMessageIndex(1);
-    }, 1000);
+  const toggleMute = () => {
+    if (vapi && isCallActive) {
+      if (isMuted) {
+        vapi.setMuted(false);
+      } else {
+        vapi.setMuted(true);
+      }
+      setIsMuted(!isMuted);
+    }
   };
 
-  if (status === "loading") {
+  if (loading || status === "loading") {
     return (
       <section className="md:mx-auto mx-10 my-8 md:px-4 bg-white rounded-2xl shadow-md max-w-7xl min-h-[92vh]">
         <div className="flex justify-center items-center h-96">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!consultation) {
+    return (
+      <section className="md:mx-auto mx-10 my-8 md:px-4 bg-white rounded-2xl shadow-md max-w-7xl min-h-[92vh]">
+        <div className="flex justify-center items-center h-96">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-600 mb-2">
+              Konsultasi tidak ditemukan
+            </h2>
+            <Link href="/consultation">
+              <Button>Kembali ke Konsultasi</Button>
+            </Link>
+          </div>
         </div>
       </section>
     );
@@ -248,7 +291,9 @@ const MedicalAgentPage = () => {
             <TiArrowLeft className="size-5" /> Kembali
           </Button>
         </Link>
-        <h1 className="font-bold text-2xl text-primary">Agen AI</h1>
+        <div className="text-center">
+          <h1 className="font-bold text-2xl text-primary">Agen AI</h1>
+        </div>
       </div>
 
       {/* Content */}
@@ -262,7 +307,7 @@ const MedicalAgentPage = () => {
           <CardContent>
             <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
               <p className="text-gray-800 leading-relaxed">
-                {gejala || "Tidak ada gejala yang diinput"}
+                {consultation.gejala}
               </p>
             </div>
           </CardContent>
@@ -361,11 +406,11 @@ const MedicalAgentPage = () => {
                       </p>
                     </div>
 
-                    {/* Dokter Messages */}
+                    {/* AI Assistant Messages */}
                     <div className="dokter-messages space-y-3 max-h-80 overflow-y-auto">
                       {transcriptMessages
-                        .filter((msg) => msg.speaker === "Agen AI Medis")
-                        .slice(-2)
+                        .filter((msg) => msg.speaker === "assistant")
+                        .slice(-3)
                         .map((message) => (
                           <div
                             key={message.id}
@@ -382,21 +427,21 @@ const MedicalAgentPage = () => {
                           </div>
                         ))}
 
-                      {isConversationActive &&
-                        transcriptMessages
-                          .filter((msg) => msg.speaker === "Agen AI Medis")
-                          .slice(-2).length < 2 &&
-                        transcriptMessages.filter(
-                          (msg) => msg.speaker === "Agen AI Medis"
-                        ).length <
-                          conversationScript.filter(
-                            (msg) => msg.speaker === "Agen AI Medis"
-                          ).length && (
-                          <div className="flex items-center gap-2 text-green-600 text-sm p-2">
-                            <div className="animate-pulse">●</div>
-                            <span>Agen AI Medis sedang merespons...</span>
+                      {isCallActive && (
+                        <div className="flex items-center gap-2 text-green-600 text-sm p-2">
+                          <div
+                            className={`animate-pulse ${
+                              isCallActive ? "text-green-600" : "text-gray-400"
+                            }`}
+                          >
+                            ●
                           </div>
-                        )}
+                          <span>
+                            AI Medis:{" "}
+                            {isCallActive ? "Mendengarkan..." : "Offline"}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -425,15 +470,17 @@ const MedicalAgentPage = () => {
                         {session?.user?.name || "Pasien"}
                       </h1>
                       <p className="mt-1 text-gray-600 text-sm">
-                        {gejala ? `Gejala: ${gejala}` : "Pasien"}
+                        {consultation.gejala
+                          ? `Gejala: ${consultation.gejala}`
+                          : "Pasien"}
                       </p>
                     </div>
 
                     {/* User Messages */}
                     <div className="user-messages space-y-3 max-h-80 overflow-y-auto">
                       {transcriptMessages
-                        .filter((msg) => msg.speaker !== "Agen AI Medis")
-                        .slice(-2) //
+                        .filter((msg) => msg.speaker === "user")
+                        .slice(-3)
                         .map((message) => (
                           <div
                             key={message.id}
@@ -450,25 +497,23 @@ const MedicalAgentPage = () => {
                           </div>
                         ))}
 
-                      {isConversationActive &&
-                        transcriptMessages
-                          .filter((msg) => msg.speaker !== "Agen AI Medis")
-                          .slice(-2).length < 2 &&
-                        transcriptMessages.filter(
-                          (msg) => msg.speaker !== "Agen AI Medis"
-                        ).length <
-                          conversationScript.filter(
-                            (msg) => msg.speaker !== "Agen AI Medis"
-                          ).length && (
-                          <div className="flex items-center gap-2 text-blue-600 text-sm p-2">
-                            <div className="animate-pulse">●</div>
-                            <span>
-                              {session?.user?.name || "Pasien"} sedang
-                              merespons...
-                            </span>
+                      {isCallActive && (
+                        <div className="flex items-center gap-2 text-blue-600 text-sm p-2">
+                          <div
+                            className={`animate-pulse ${
+                              isCallActive ? "text-blue-600" : "text-gray-400"
+                            }`}
+                          >
+                            ●
                           </div>
-                        )}
+                          <span>
+                            {session?.user?.name || "Anda"}:{" "}
+                            {isMuted ? "Muted" : "Berbicara..."}
+                          </span>
+                        </div>
+                      )}
                     </div>
+                    <div ref={transcriptEndRef} />
                   </div>
                 </div>
               </div>
@@ -478,22 +523,36 @@ const MedicalAgentPage = () => {
           {/* Tombol Control */}
           <div className="flex justify-center pb-4">
             {!isConsultationStarted ? (
-              <Button onClick={startConsultation} className="mx-auto">
-                <IoMdCall className="mr-2" /> Mulai Konsultasi
+              <Button
+                onClick={startConsultation}
+                className="mx-auto"
+                disabled={!vapi}
+              >
+                <IoMdCall className="mr-2" />{" "}
+                {vapi ? "Mulai Konsultasi Voice" : "Loading Vapi..."}
               </Button>
             ) : (
               <div className="flex gap-2">
-                {isConversationActive ? (
-                  <Button
-                    onClick={stopConsultation}
-                    variant="destructive"
-                    className="mx-auto"
-                  >
-                    <FaStop className="mr-2" /> Hentikan Konsultasi
-                  </Button>
+                {isCallActive ? (
+                  <>
+                    <Button
+                      onClick={toggleMute}
+                      variant={isMuted ? "destructive" : "outline"}
+                      className="mx-auto"
+                    >
+                      {isMuted ? "🔇 Unmute" : "🔊 Mute"}
+                    </Button>
+                    <Button
+                      onClick={stopConsultation}
+                      variant="destructive"
+                      className="mx-auto"
+                    >
+                      <FaStop className="mr-2" /> Akhiri Call
+                    </Button>
+                  </>
                 ) : (
-                  <Button onClick={restartConsultation} className="mx-auto">
-                    Ulang Konsultasi
+                  <Button onClick={startConsultation} className="mx-auto">
+                    <IoMdCall className="mr-2" /> Mulai Ulang
                   </Button>
                 )}
               </div>
