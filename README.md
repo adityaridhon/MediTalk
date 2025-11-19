@@ -14,7 +14,6 @@ Dibangun dengan **Next.js 15**, **Auth.js**, **Prisma**, and **ShadCN UI**.
 | v0.1.0 | Setup project, Auth (Google), Front-End base |
 | v0.2.0 | Konsultasi dengan Agen AI (MVP)              |
 | v0.3.0 | Multilingual support (EN/ID)                 |
-| v0.4.0 | Subscription system untuk agen bahasa lain   |
 | v1.0.0 | Rilis dan optimasi sistem                    |
 
 ---
