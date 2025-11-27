@@ -15,9 +15,14 @@ import {
 import { IoMdCall } from "react-icons/io";
 import { ImConnection } from "react-icons/im";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import {
+  updateConsultation,
+  generateMedicalReport,
+  Message,
+} from "@/lib/consultation-helpers";
 
 interface Consultation {
   id: string;
@@ -46,6 +51,10 @@ const MedicalAgentPage = () => {
       isVisible: boolean;
     }>
   >([]);
+  const [conversationMessages, setConversationMessages] = useState<Message[]>(
+    []
+  );
+  const conversationMessagesRef = useRef<Message[]>([]);
   const [isCallActive, setIsCallActive] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState("Tidak Terhubung");
   const [timer, setTimer] = useState("00:00");
@@ -56,6 +65,7 @@ const MedicalAgentPage = () => {
   const params = useParams();
   const consultationId = params.id as string;
   const { data: session, status } = useSession();
+  const router = useRouter();
 
   // Initialize Vapi
   useEffect(() => {
@@ -91,10 +101,47 @@ const MedicalAgentPage = () => {
           setConnectionStatus("Terhubung - Voice Call Aktif");
         });
 
-        vapiInstance.on("call-end", () => {
+        vapiInstance.on("call-end", async () => {
           console.log("Call ended");
           setIsCallActive(false);
-          setConnectionStatus("Tidak Terhubung - Call Berakhir");
+          setConnectionStatus(
+            "Tidak Terhubung - Menyimpan hasil konsultasi..."
+          );
+
+          // Save conversation and generate report when call ends
+          try {
+            const currentConversation = conversationMessagesRef.current;
+            if (currentConversation.length > 0) {
+              console.log("Saving conversation and generating report...");
+
+              // Generate medical report
+              const report = await generateMedicalReport(
+                consultationId,
+                consultation?.gejala || "",
+                currentConversation
+              );
+
+              // Update consultation with conversation and report
+              await updateConsultation(
+                consultationId,
+                currentConversation,
+                report
+              );
+
+              console.log("Consultation saved successfully");
+              setConnectionStatus("Konsultasi selesai - Hasil tersimpan");
+
+              // Redirect to detail page to view the report
+              setTimeout(() => {
+                router.push(`/consultation/detail/${consultationId}`);
+              }, 2000);
+            } else {
+              setConnectionStatus("Konsultasi berakhir - Tidak ada percakapan");
+            }
+          } catch (error) {
+            console.error("Error saving consultation:", error);
+            setConnectionStatus("Konsultasi berakhir - Gagal menyimpan");
+          }
         });
 
         vapiInstance.on("message", (message) => {
@@ -117,6 +164,19 @@ const MedicalAgentPage = () => {
             };
 
             setTranscriptMessages((prev) => [...prev, newMessage]);
+
+            // Also save to conversation messages for database storage
+            const conversationMessage: Message = {
+              role: message.role === "assistant" ? "assistant" : "user",
+              content: message.transcript,
+              timestamp: new Date().toISOString(),
+            };
+
+            setConversationMessages((prev) => {
+              const updated = [...prev, conversationMessage];
+              conversationMessagesRef.current = updated;
+              return updated;
+            });
           }
         });
 
@@ -236,12 +296,40 @@ const MedicalAgentPage = () => {
     }
   };
 
-  const stopConsultation = () => {
+  const stopConsultation = async () => {
     if (vapi && isCallActive) {
       vapi.stop();
     }
     setIsCallActive(false);
-    setConnectionStatus("Tidak Terhubung - Konsultasi Dihentikan");
+    setConnectionStatus("Tidak Terhubung - Menyimpan hasil konsultasi...");
+
+    // Save conversation and generate report
+    try {
+      if (conversationMessages.length > 0) {
+        console.log("Saving conversation and generating report...");
+
+        // Generate medical report
+        const report = await generateMedicalReport(
+          consultationId,
+          consultation?.gejala || "",
+          conversationMessages
+        );
+
+        // Update consultation with conversation and report
+        await updateConsultation(consultationId, conversationMessages, report);
+
+        console.log("Consultation saved successfully");
+        setConnectionStatus("Konsultasi selesai - Hasil tersimpan");
+
+        // Redirect to detail page to view the report
+        router.push(`/consultation/detail/${consultationId}`);
+      } else {
+        setConnectionStatus("Konsultasi dihentikan - Tidak ada percakapan");
+      }
+    } catch (error) {
+      console.error("Error saving consultation:", error);
+      setConnectionStatus("Konsultasi dihentikan - Gagal menyimpan");
+    }
   };
 
   const toggleMute = () => {

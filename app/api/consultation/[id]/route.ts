@@ -38,7 +38,7 @@ export async function GET(
     const consultation = await prisma.consultation.findFirst({
       where: {
         id: id,
-        createdBy: user.id, // Ensure user can only access their own consultations
+        createdBy: user.id,
       },
       include: {
         user: {
