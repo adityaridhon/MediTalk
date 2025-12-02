@@ -65,10 +65,8 @@ Pastikan analisis berdasarkan informasi medis yang akurat dan responsif terhadap
 
     const responseText = response.text?.trim() || "";
 
-    // Parse JSON response
     let parsedReport;
     try {
-      // Remove potential markdown code blocks
       const cleanedResponse = responseText
         .replace(/```json\n?|```\n?/g, "")
         .trim();
@@ -77,7 +75,6 @@ Pastikan analisis berdasarkan informasi medis yang akurat dan responsif terhadap
       console.error("Error parsing AI response:", parseError);
       console.log("Raw AI response:", responseText);
 
-      // Fallback dengan data default jika parsing gagal
       parsedReport = {
         summary:
           "Laporan tidak dapat dihasilkan otomatis. Silakan konsultasi dengan dokter untuk evaluasi lebih lanjut.",

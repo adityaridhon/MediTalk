@@ -165,7 +165,7 @@ export default function ConsultationDetailPage({
           </div>
 
           {/* Consultation Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex justify-center items-center gap-10">
             <div className="flex items-center gap-2">
               <FaCalendarAlt className="text-blue-500 size-4" />
               <div>
@@ -187,18 +187,6 @@ export default function ConsultationDetailPage({
                       minute: "2-digit",
                     }
                   )}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <FaComments className="text-purple-500 size-4" />
-              <div>
-                <p className="text-sm text-gray-600">Total Pesan</p>
-                <p className="font-medium">
-                  {consultation.conversation &&
-                  Array.isArray(consultation.conversation)
-                    ? consultation.conversation.length
-                    : 0}
                 </p>
               </div>
             </div>
