@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+// Get all consultations 
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -13,7 +14,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Find user by email
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get user's consultation history
     const consultations = await prisma.consultation.findMany({
       where: {
         createdBy: user.id,
@@ -74,7 +73,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user by email
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
@@ -83,7 +81,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Create consultation
     const consultation = await prisma.consultation.create({
       data: {
         gejala: gejala.trim(),

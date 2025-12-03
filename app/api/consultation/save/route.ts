@@ -2,11 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-// Update consultation with conversation and report
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+// Save consultation conversation ke DB
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
 
@@ -17,23 +14,28 @@ export async function PUT(
       );
     }
 
-    const { id } = await context.params;
-    const body = await request.json();
-    const { conversation, report } = body;
+    const { consultationId, conversation } = await request.json();
 
-    // Validate required fields
-    if (!conversation && !report) {
+    if (!consultationId || !conversation) {
       return NextResponse.json(
-        { error: "At least conversation or report is required" },
+        { error: "consultationId and conversation are required" },
         { status: 400 }
       );
     }
 
-    // Check if consultation exists and belongs to user
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     const existingConsultation = await prisma.consultation.findFirst({
       where: {
-        id: id,
-        createdBy: session.user.email,
+        id: consultationId,
+        createdBy: user.id,
       },
     });
 
@@ -44,33 +46,27 @@ export async function PUT(
       );
     }
 
-    // Update consultation
     const updatedConsultation = await prisma.consultation.update({
       where: {
-        id: id,
+        id: consultationId,
       },
       data: {
-        ...(conversation && { conversation }),
-        ...(report && { report }),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+        conversation: conversation, 
       },
     });
 
+
     return NextResponse.json({
       success: true,
-      message: "Consultation updated successfully",
-      data: updatedConsultation,
+      message: "Conversation saved successfully",
+      data: {
+        consultationId: updatedConsultation.id,
+        conversationLength: conversation.length,
+      },
     });
+
   } catch (error) {
-    console.error("Error updating consultation:", error);
+    console.error("Error saving conversation:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

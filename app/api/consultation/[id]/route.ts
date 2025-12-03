@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+// Get consultation by ID
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -25,7 +26,6 @@ export async function GET(
       );
     }
 
-    // Find user by email
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
@@ -34,7 +34,6 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get consultation
     const consultation = await prisma.consultation.findFirst({
       where: {
         id: id,
