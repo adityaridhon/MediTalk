@@ -24,7 +24,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${fontTitle.className} antialiased`}>
+      <body
+        className={`${fontTitle.className} antialiased bg-gradient-to-b from-secondary/5 to-secondary/10`}
+      >
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>

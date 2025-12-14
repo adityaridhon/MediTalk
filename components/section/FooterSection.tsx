@@ -1,10 +1,25 @@
 import React from "react";
-import Link from "next/link";
 
 const FooterSection = () => {
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navbar = document.querySelector(".sticky");
+      const navbarHeight = navbar
+        ? navbar.getBoundingClientRect().height + 50
+        : 120;
+      const elementPosition = element.offsetTop;
+      const offsetPosition = elementPosition - navbarHeight;
+
+      window.scrollTo({
+        behavior: "smooth",
+        top: Math.max(0, offsetPosition),
+      });
+    }
+  };
   return (
     <footer className="border-t border-t-primary text-primary bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="col-span-1 col-start-1 lg:col-span-2">
@@ -62,45 +77,6 @@ const FooterSection = () => {
                 </svg>
               </a>
             </div>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/"
-                  className="text-gray-800 hover:text-primary transition-colors"
-                >
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/popular"
-                  className="text-gray-800 hover:text-primary transition-colors"
-                >
-                  Popular
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/top-rated"
-                  className="text-gray-800 hover:text-primary transition-colors"
-                >
-                  Top Rated
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/upcoming"
-                  className="text-gray-800 hover:text-primary transition-colors"
-                >
-                  Upcoming
-                </Link>
-              </li>
-            </ul>
           </div>
 
           {/* Contact Info */}

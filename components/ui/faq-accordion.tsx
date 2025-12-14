@@ -29,14 +29,14 @@ const Faqdata = [
 
 const Faq = () => {
   return (
-    <div className="max-w-3xl mx-auto bg-gray-50/10 rounded-2xl shadow p-6 md:p-10">
+    <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow p-6 md:p-10">
       <Accordion type="single" collapsible className="space-y-4">
         {Faqdata.map((faq) => (
           <AccordionItem key={faq.value} value={faq.value}>
-            <AccordionTrigger className="text-lg font-semibold">
+            <AccordionTrigger className="text-base md:text-lg font-semibold">
               {faq.question}
             </AccordionTrigger>
-            <AccordionContent className="text-gray-600">
+            <AccordionContent className="text-gray-600 text-xs md:text-sm">
               {faq.answer}
             </AccordionContent>
           </AccordionItem>

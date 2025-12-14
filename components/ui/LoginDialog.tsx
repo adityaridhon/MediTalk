@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { FaGoogle } from "react-icons/fa";
 import {
@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface LoginDialogProps {
   children: React.ReactNode;
@@ -19,12 +20,29 @@ interface LoginDialogProps {
 
 const LoginDialog = ({ children }: LoginDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [redirectPath, setRedirectPath] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Listen for custom event to open dialog
+    const handleOpenDialog = (event: CustomEvent) => {
+      setIsOpen(true);
+      setRedirectPath(event.detail?.redirectPath || null);
+    };
+
+    window.addEventListener("openLoginDialog" as any, handleOpenDialog);
+
+    return () => {
+      window.removeEventListener("openLoginDialog" as any, handleOpenDialog);
+    };
+  }, []);
 
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
       await signIn("google", {
-        callbackUrl: "/",
+        callbackUrl: redirectPath || "/consultation",
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -33,7 +51,7 @@ const LoginDialog = ({ children }: LoginDialogProps) => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
 
       {/* Isi popupp */}
@@ -55,10 +73,7 @@ const LoginDialog = ({ children }: LoginDialogProps) => {
             disabled={isLoading}
           >
             {isLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                Masuk...
-              </>
+              <>Masuk...</>
             ) : (
               <>
                 <FaGoogle className="text-blue-500" />

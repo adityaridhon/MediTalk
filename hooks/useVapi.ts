@@ -7,7 +7,7 @@ interface UseVapiProps {
   gejala: string;
 }
 
-interface TranscriptMessage {
+export interface TranscriptMessage {
   id: number;
   speaker: "assistant" | "user";
   content: string;
@@ -36,6 +36,8 @@ export const useVapi = ({ consultationId, gejala }: UseVapiProps) => {
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [assistantSpeaking, setAssistantSpeaking] = useState(false);
   const [isCreatingAssistant, setIsCreatingAssistant] = useState(false);
+  const [callHasEnded, setCallHasEnded] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   const router = useRouter();
 
@@ -55,18 +57,21 @@ export const useVapi = ({ consultationId, gejala }: UseVapiProps) => {
           return;
         }
 
-        const publicKey = "b2c71cbb-957c-4d3c-a48a-28f38ffe3c4a";
+        const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_API_KEY!;
         const vapiInstance = new Vapi(publicKey);
         setVapi(vapiInstance);
 
         vapiInstance.on("call-start", () => {
           setIsCallActive(true);
+          setCallHasEnded(false);
           setConnectionStatus("Terhubung - Voice Call Aktif");
         });
 
         vapiInstance.on("call-end", async () => {
           setIsCallActive(false);
           setAssistantSpeaking(false);
+          setCallHasEnded(true);
+          setIsGeneratingReport(true);
           setConnectionStatus(
             "Tidak Terhubung - Menyimpan hasil konsultasi..."
           );
@@ -188,6 +193,7 @@ export const useVapi = ({ consultationId, gejala }: UseVapiProps) => {
         }
 
         setConnectionStatus("Membuat laporan konsultasi...");
+        setIsGeneratingReport(true);
 
         try {
           const reportResponse = await fetch(
@@ -227,6 +233,7 @@ export const useVapi = ({ consultationId, gejala }: UseVapiProps) => {
             }, 5000);
           } else {
             console.log("Report generated successfully");
+            setIsGeneratingReport(false);
 
             setTimeout(() => {
               router.push(`/consultation`);
@@ -234,6 +241,7 @@ export const useVapi = ({ consultationId, gejala }: UseVapiProps) => {
           }
         } catch (reportError: unknown) {
           console.error("Report generation error:", reportError);
+          setIsGeneratingReport(false);
 
           const errorMessage =
             reportError instanceof Error
@@ -250,12 +258,14 @@ export const useVapi = ({ consultationId, gejala }: UseVapiProps) => {
         }
       } else {
         setConnectionStatus("Konsultasi berakhir - Tidak ada percakapan");
+        setIsGeneratingReport(false);
         setTimeout(() => {
           router.push(`/consultation`);
         }, 2000);
       }
     } catch (error: unknown) {
       console.error("Error in saveConsultationData:", error);
+      setIsGeneratingReport(false);
 
       const errorMessage =
         error instanceof Error
@@ -388,6 +398,8 @@ export const useVapi = ({ consultationId, gejala }: UseVapiProps) => {
     lastActivity,
     assistantSpeaking,
     isCreatingAssistant,
+    callHasEnded,
+    isGeneratingReport,
     startConsultation,
     stopConsultation,
     toggleMute,

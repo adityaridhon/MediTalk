@@ -4,9 +4,8 @@ export async function POST(request: NextRequest) {
   try {
     const { gejala, phone } = await request.json();
 
-    // Create medical vapi assi1stant
     const vapiApiKey = process.env.VAPI_API_KEY!;
-    
+
     const assistantConfig = {
       model: {
         provider: "groq",
@@ -17,11 +16,11 @@ export async function POST(request: NextRequest) {
             content: `Anda adalah asisten medis AI yang sopan, ringkas, dan empatik. Instruksi Utama:
                       Gunakan bahasa Indonesia yang santun dan mudah dipahami.
                       Fokus pada gejala pasien: "${gejala}".
-                      Ajukan sedikit pertanyaan lanjutan (maksimal 1–2 yang benar-benar penting).
+                      Ajukan sedikit pertanyaan lanjutan (maksimal 1 yang benar-benar penting ).
                       Berikan saran umum, bukan diagnosis pasti.
                       Ingatkan bahwa konsultasi dokter asli tetap diperlukan.
                       Gaya Jawaban:
-                      Singkat, jelas, tidak bertele-tele.
+                      Singkat, jelas, tidak bertele-tele dan terlalu panjang, maksimal 250 kata.
                       Empatik, tetapi tidak drama.
                       Hindari list terlalu panjang.
                       Alur Percakapan:
@@ -29,36 +28,57 @@ export async function POST(request: NextRequest) {
                       Tanyakan 1–2 pertanyaan kunci untuk memahami tingkat keparahan.
                       Berikan saran awal yang aman dan praktis.
                       Anjurkan kapan harus ke dokter atau fasilitas kesehatan.
-                      Mulai percakapan dengan sapaan yang hangat.`
-          }
+                      Mulai percakapan dengan sapaan yang hangat.`,
+          },
         ],
         maxTokens: 250,
         temperature: 0.7,
       },
+      functions: [
+        {
+          name: "endCall",
+          description: "Mengakhiri panggilan ketika percakapan sudah selesai",
+          parameters: {
+            type: "object",
+            properties: {
+              reason: {
+                type: "string",
+                description: "Alasan mengakhiri panggilan",
+              },
+              finalMessage: {
+                type: "string",
+                description: "Pesan terakhir sebelum mengakhiri panggilan",
+              },
+            },
+            required: ["reason"],
+          },
+        },
+      ],
       voice: {
         model: "eleven_turbo_v2_5",
         provider: "11labs",
-        voiceId: "SCDJ1Fy4al0KS1awS6H9"
+        voiceId: "SCDJ1Fy4al0KS1awS6H9",
       },
       firstMessage: `Halo! Saya adalah asisten medis anda. Saya melihat Anda mengalami ${gejala}. Bagaimana kondisi Anda saat ini? Bisa ceritakan lebih detail tentang gejala yang Anda rasakan?`,
       transcriber: {
         model: "scribe_v1",
         language: "id",
-        provider: "11labs"
-  },
-      endCallMessage: "Terima kasih sudah berbagi. Semoga lekas sembuh dan jangan lupa konsultasi dengan dokter jika diperlukan.",
+        provider: "11labs",
+      },
+      endCallMessage:
+        "Terima kasih sudah berbagi. Semoga lekas sembuh dan jangan lupa konsultasi dengan dokter jika diperlukan.",
       recordingEnabled: true,
       silenceTimeoutSeconds: 420,
       maxDurationSeconds: 600,
     };
 
-    const vapiResponse = await fetch('https://api.vapi.ai/assistant', {
-      method: 'POST',
+    const vapiResponse = await fetch("https://api.vapi.ai/assistant", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${vapiApiKey}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${vapiApiKey}`,
       },
-      body: JSON.stringify(assistantConfig)
+      body: JSON.stringify(assistantConfig),
     });
 
     if (!vapiResponse.ok) {
@@ -75,16 +95,18 @@ export async function POST(request: NextRequest) {
       data: {
         assistantId: assistant.id,
         assistant: assistant,
-        message: "Medical assistant created successfully"
-      }
+        message: "Medical assistant created successfully",
+      },
     });
-
   } catch (error) {
     console.error("Error creating medical agent:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : "Failed to create medical agent" 
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create medical agent",
       },
       { status: 500 }
     );
