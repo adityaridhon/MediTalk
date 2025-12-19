@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-// Get all consultations 
+// Get all consultations
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
       data: {
         gejala: gejala.trim(),
         conversation: [],
+        status: "ACTIVE",
         report: [],
         createdBy: user.id,
       },

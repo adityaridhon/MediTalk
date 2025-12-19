@@ -6,6 +6,7 @@ interface Consultation {
   gejala: string;
   conversation: any[];
   report: any;
+  status: string;
   createdBy: string;
   createdAt: string;
   user: {
@@ -131,5 +132,56 @@ export const useConsultations = () => {
     fetchConsultations();
   }, [session]);
 
-  return { consultations, loading, error };
+  const refetch = () => {
+    if (session?.user?.email) {
+      setLoading(true);
+      fetch("/api/consultation", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((result) => {
+          if (result.success && result.data) {
+            setConsultations(result.data);
+          }
+        })
+        .catch((err) => {
+          console.error("Error refetching:", err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  };
+
+  const deleteConsultation = async (consultationId: string) => {
+    try {
+      const response = await fetch(`/api/consultation/${consultationId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete consultation");
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Update state lokal
+        setConsultations((prev) => prev.filter((c) => c.id !== consultationId));
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error deleting consultation:", error);
+      throw error;
+    }
+  };
+
+  return { consultations, loading, error, refetch, deleteConsultation };
 };

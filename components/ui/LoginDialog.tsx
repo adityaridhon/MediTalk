@@ -25,7 +25,6 @@ const LoginDialog = ({ children }: LoginDialogProps) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Listen for custom event to open dialog
     const handleOpenDialog = (event: CustomEvent) => {
       setIsOpen(true);
       setRedirectPath(event.detail?.redirectPath || null);

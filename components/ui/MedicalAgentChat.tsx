@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { Mic, Volume2, User, Phone, FileText } from "lucide-react";
-import { TiArrowLeft } from "react-icons/ti";
+import { IoIosArrowRoundBack } from "react-icons/io";
 import type { TranscriptMessage } from "@/hooks/useVapi";
 import Image from "next/image";
 import { Button } from "./button";
@@ -106,7 +106,7 @@ export function MedicalAgentChat({
         <div className="flex items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-4 sm:py-3 md:gap-4 md:px-6 md:py-4">
           <Link href="/consultation">
             <Button variant="outline" size="icon-lg" className="flex-shrink-0">
-              <TiArrowLeft className="h-4 w-4" />
+              <IoIosArrowRoundBack className="h-4 w-4" />
             </Button>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">

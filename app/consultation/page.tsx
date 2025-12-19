@@ -7,6 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConsultationDetailModal } from "@/components/ui/DetailConsultation";
 import { CreateConsultationDialog } from "@/components/ui/SymptomDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Image from "next/image";
 import {
   FaPlus,
@@ -18,6 +26,8 @@ import {
   FaCalendar,
   FaChevronRight,
   FaStethoscope,
+  FaFileMedical,
+  FaTrash,
 } from "react-icons/fa6";
 import { useSession } from "next-auth/react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -25,11 +35,15 @@ import { useConsultations } from "@/hooks/useConsultations";
 
 const ConsultationPage = () => {
   const { data: session, status } = useSession();
-  const { consultations, loading, error } = useConsultations();
+  const { consultations, loading, error, deleteConsultation } =
+    useConsultations();
   const [selectedConsultation, setSelectedConsultation] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [consultationToDelete, setConsultationToDelete] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const itemsPerPage = 6;
 
   const handleViewDetail = (consultation: any) => {
@@ -39,6 +53,32 @@ const ConsultationPage = () => {
 
   const handleCreateConsultation = () => {
     setIsCreateDialogOpen(true);
+  };
+
+  const handleDeleteClick = (consultation: any, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setConsultationToDelete(consultation);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!consultationToDelete) return;
+
+    try {
+      setDeletingId(consultationToDelete.id);
+      await deleteConsultation(consultationToDelete.id);
+      setIsDeleteDialogOpen(false);
+      setConsultationToDelete(null);
+    } catch (error) {
+      console.error("Error deleting consultation:", error);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteDialogOpen(false);
+    setConsultationToDelete(null);
   };
 
   const statistics = useMemo(() => {
@@ -406,10 +446,22 @@ const ConsultationPage = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => handleViewDetail(consultation)}
-                            className="flex items-center gap-2 w-full"
+                            className="w-1/2"
                           >
-                            <FaEye className="h-4 w-4" />
+                            <FaFileMedical className="h-4 w-4" />
                             Detail
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={(e) => handleDeleteClick(consultation, e)}
+                            disabled={deletingId === consultation.id}
+                            className="w-1/2"
+                          >
+                            <FaTrash className="h-4 w-4" />
+                            {deletingId === consultation.id
+                              ? "Menghapus..."
+                              : "Hapus"}
                           </Button>
                         </div>
                       </Card>
@@ -529,6 +581,79 @@ const ConsultationPage = () => {
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
       />
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <FaTrash className="h-5 w-5" />
+              Hapus Konsultasi
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              Apakah Anda yakin ingin menghapus konsultasi ini?
+            </DialogDescription>
+          </DialogHeader>
+          {consultationToDelete && (
+            <div className="bg-gray-50 rounded-lg p-4 my-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FaStethoscope className="h-5 w-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900">
+                    {consultationToDelete.gejala}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {new Date(
+                      consultationToDelete.createdAt
+                    ).toLocaleDateString("id-ID", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-2">
+            <p className="text-sm text-yellow-800">
+              Tindakan ini tidak dapat dibatalkan. Semua data laporan akan
+              dihapus permanen.
+            </p>
+          </div>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleDeleteCancel}
+              disabled={deletingId !== null}
+              className="flex-1"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deletingId !== null}
+              className="flex-1"
+            >
+              {deletingId ? (
+                <>
+                  <span className="animate-spin mr-2">⏳</span>
+                  Menghapus...
+                </>
+              ) : (
+                <>
+                  <FaTrash className="h-4 w-4 mr-2" />
+                  Hapus
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

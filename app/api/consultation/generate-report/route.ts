@@ -12,24 +12,29 @@ const groq = new Groq({
 export async function POST(request: NextRequest) {
   try {
     const groqApiKey = process.env.GROQ_API_KEY;
-   
-    
+
     if (!groqApiKey) {
       console.error("GROQ_API_KEY not configured");
-      return NextResponse.json({
-        success: false,
-        error: "Groq API key not configured",
-        details: "Please check environment variables"
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Groq API key not configured",
+          details: "Please check environment variables",
+        },
+        { status: 500 }
+      );
     }
 
     const session = await auth();
 
     if (!session?.user?.email) {
-      return NextResponse.json({
-        success: false,
-        error: "Unauthorized - Please login first"
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unauthorized - Please login first",
+        },
+        { status: 401 }
+      );
     }
 
     let requestBody;
@@ -37,19 +42,25 @@ export async function POST(request: NextRequest) {
       requestBody = await request.json();
     } catch (parseError) {
       console.error("Failed to parse request body:", parseError);
-      return NextResponse.json({
-        success: false,
-        error: "Invalid request body"
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid request body",
+        },
+        { status: 400 }
+      );
     }
-    
+
     const { consultationId } = requestBody;
 
     if (!consultationId) {
-      return NextResponse.json({
-        success: false,
-        error: "consultationId is required"
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "consultationId is required",
+        },
+        { status: 400 }
+      );
     }
 
     const user = await prisma.user.findUnique({
@@ -57,10 +68,13 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({
-        success: false,
-        error: "User not found"
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "User not found",
+        },
+        { status: 404 }
+      );
     }
 
     const consultation = await prisma.consultation.findFirst({
@@ -71,17 +85,26 @@ export async function POST(request: NextRequest) {
     });
 
     if (!consultation) {
-      return NextResponse.json({
-        success: false,
-        error: "Consultation not found or access denied"
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Consultation not found or access denied",
+        },
+        { status: 404 }
+      );
     }
 
-    if (!consultation.conversation || (consultation.conversation as any[]).length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: "No conversation found to generate report"
-      }, { status: 400 });
+    if (
+      !consultation.conversation ||
+      (consultation.conversation as any[]).length === 0
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No conversation found to generate report",
+        },
+        { status: 400 }
+      );
     }
 
     const conversation = consultation.conversation as Array<{
@@ -92,10 +115,16 @@ export async function POST(request: NextRequest) {
 
     // Formatting pesan conversation
     const conversationText = conversation
-      .map((msg) => `${msg.role === "user" ? "Pasien" : "AI Medis"}: ${msg.content}`)
+      .map(
+        (msg) =>
+          `${msg.role === "user" ? "Pasien" : "AI Medis"}: ${msg.content}`
+      )
       .join("\n");
 
-    console.log("Conversation sample:", conversationText.substring(0, 300) + "...");
+    console.log(
+      "Conversation sample:",
+      conversationText.substring(0, 300) + "..."
+    );
 
     // Prompt generate reprot
     const prompt = `Anda adalah dokter profesional yang ahli dalam menganalisis percakapan konsultasi medis. 
@@ -133,22 +162,22 @@ ${conversationText}
 
 Buatlah laporan medis dalam format JSON sesuai instruksi.`;
 
-
     let reportContent;
     try {
       const chatCompletion = await groq.chat.completions.create({
         messages: [
           {
             role: "system",
-            content: "Anda adalah dokter profesional yang ahli dalam menganalisis percakapan konsultasi medis. Selalu berikan response dalam format JSON yang valid."
+            content:
+              "Anda adalah dokter profesional yang ahli dalam menganalisis percakapan konsultasi medis. Selalu berikan response dalam format JSON yang valid.",
           },
           {
             role: "user",
             content: prompt,
           },
         ],
-        model: "llama-3.1-8b-instant", 
-        temperature: 0.3, 
+        model: "llama-3.1-8b-instant",
+        temperature: 0.3,
         max_tokens: 2000,
         top_p: 1,
         stream: false,
@@ -157,28 +186,38 @@ Buatlah laporan medis dalam format JSON sesuai instruksi.`;
       reportContent = chatCompletion.choices[0]?.message?.content;
     } catch (groqError) {
       console.error("Groq API error:", groqError);
-      return NextResponse.json({
-        success: false,
-        error: "AI service temporarily unavailable",
-        details: groqError instanceof Error ? groqError.message : "Unknown AI error"
-      }, { status: 503 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "AI service temporarily unavailable",
+          details:
+            groqError instanceof Error ? groqError.message : "Unknown AI error",
+        },
+        { status: 503 }
+      );
     }
 
     if (!reportContent) {
-      return NextResponse.json({
-        success: false,
-        error: "Empty response from Groq AI"
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Empty response from Groq AI",
+        },
+        { status: 500 }
+      );
     }
 
     let cleanedContent = reportContent.trim();
-    
-    if (cleanedContent.startsWith('```json')) {
-      cleanedContent = cleanedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-    } else if (cleanedContent.startsWith('```')) {
-      cleanedContent = cleanedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
-    }
 
+    if (cleanedContent.startsWith("```json")) {
+      cleanedContent = cleanedContent
+        .replace(/^```json\s*/, "")
+        .replace(/\s*```$/, "");
+    } else if (cleanedContent.startsWith("```")) {
+      cleanedContent = cleanedContent
+        .replace(/^```\s*/, "")
+        .replace(/\s*```$/, "");
+    }
 
     let report;
     try {
@@ -186,7 +225,7 @@ Buatlah laporan medis dalam format JSON sesuai instruksi.`;
     } catch (parseError) {
       console.error("JSON parse error:", parseError);
       console.error("Failed content:", cleanedContent);
-      
+
       const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         try {
@@ -194,7 +233,7 @@ Buatlah laporan medis dalam format JSON sesuai instruksi.`;
           report = JSON.parse(jsonMatch[0]);
         } catch (secondParseError) {
           console.error("Second parse error:", secondParseError);
-          
+
           report = {
             ringkasan_gejala: consultation.gejala,
             keluhan_utama: consultation.gejala,
@@ -204,13 +243,16 @@ Buatlah laporan medis dalam format JSON sesuai instruksi.`;
             faktor_pemicu: "Tidak diketahui",
             riwayat_pengobatan: "Tidak diketahui",
             rekomendasi: {
-              tindakan_segera: "Konsultasi dengan dokter untuk evaluasi lebih lanjut",
+              tindakan_segera:
+                "Konsultasi dengan dokter untuk evaluasi lebih lanjut",
               perawatan_rumah: "Istirahat yang cukup dan minum air putih",
-              kapan_ke_dokter: "Jika gejala memburuk atau tidak membaik dalam 24 jam",
-              spesialis_yang_disarankan: "Dokter umum"
+              kapan_ke_dokter:
+                "Jika gejala memburuk atau tidak membaik dalam 24 jam",
+              spesialis_yang_disarankan: "Dokter umum",
             },
             tingkat_urgensi: "sedang",
-            catatan_penting: "Laporan dibuat dengan data terbatas. Konsultasi dokter untuk evaluasi lengkap."
+            catatan_penting:
+              "Laporan dibuat dengan data terbatas. Konsultasi dokter untuk evaluasi lengkap.",
           };
         }
       } else {
@@ -226,29 +268,35 @@ Buatlah laporan medis dalam format JSON sesuai instruksi.`;
             tindakan_segera: "Konsultasi dengan dokter untuk evaluasi",
             perawatan_rumah: "Istirahat dan monitor gejala",
             kapan_ke_dokter: "Segera untuk evaluasi lebih lanjut",
-            spesialis_yang_disarankan: "Dokter umum"
+            spesialis_yang_disarankan: "Dokter umum",
           },
           tingkat_urgensi: "sedang",
-          catatan_penting: "Laporan gagal dibuat otomatis. Segera konsultasi dokter."
+          catatan_penting:
+            "Laporan gagal dibuat otomatis. Segera konsultasi dokter.",
         };
       }
     }
 
     console.log("Final report keys:", Object.keys(report));
 
-    const requiredFields = ['ringkasan_gejala', 'keluhan_utama', 'tingkat_keparahan', 'rekomendasi'];
+    const requiredFields = [
+      "ringkasan_gejala",
+      "keluhan_utama",
+      "tingkat_keparahan",
+      "rekomendasi",
+    ];
     for (const field of requiredFields) {
       if (!report[field]) {
         console.warn(`Missing required field: ${field}, setting default value`);
-        if (field === 'rekomendasi') {
+        if (field === "rekomendasi") {
           report[field] = {
             tindakan_segera: "Konsultasi dengan dokter",
             perawatan_rumah: "Istirahat yang cukup",
             kapan_ke_dokter: "Jika gejala memburuk",
-            spesialis_yang_disarankan: "Dokter umum"
+            spesialis_yang_disarankan: "Dokter umum",
           };
         } else {
-          report[field] = 'Tidak tersedia';
+          report[field] = "Tidak tersedia";
         }
       }
     }
@@ -259,24 +307,29 @@ Buatlah laporan medis dalam format JSON sesuai instruksi.`;
         generated_at: new Date().toISOString(),
         consultation_id: consultationId,
         conversation_length: conversation.length,
-        duration_minutes: Math.round(
-          (new Date(conversation[conversation.length - 1]?.timestamp).getTime() - 
-           new Date(conversation[0]?.timestamp).getTime()) / (1000 * 60)
-        ) || 0,
+        duration_minutes:
+          Math.round(
+            (new Date(
+              conversation[conversation.length - 1]?.timestamp
+            ).getTime() -
+              new Date(conversation[0]?.timestamp).getTime()) /
+              (1000 * 60)
+          ) || 0,
         ai_model: "llama-3.1-8b-instant",
-        generated_by: "Groq AI"
-      }
+        generated_by: "Groq AI",
+      },
     };
 
     console.log("Final report structure:", Object.keys(finalReport));
     console.log("Updating consultation in database...");
 
-    // Save ke db
+    // Save ke db dan update status ke COMPLETE
     try {
       const updatedConsultation = await prisma.consultation.update({
         where: { id: consultationId },
         data: {
           report: finalReport,
+          status: "COMPLETE",
         },
       });
 
@@ -286,26 +339,42 @@ Buatlah laporan medis dalam format JSON sesuai instruksi.`;
         data: {
           report: finalReport,
           consultationId: updatedConsultation.id,
+          status: updatedConsultation.status,
         },
       });
-
     } catch (dbError) {
       console.error("Database save error:", dbError);
-      return NextResponse.json({
-        success: false,
-        error: "Failed to save report to database",
-        details: dbError instanceof Error ? dbError.message : "Unknown database error"
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to save report to database",
+          details:
+            dbError instanceof Error
+              ? dbError.message
+              : "Unknown database error",
+        },
+        { status: 500 }
+      );
     }
   } catch (error) {
     console.error("Error type:", error?.constructor?.name);
-    console.error("Error message:", error instanceof Error ? error.message : error);
-    console.error("Error stack:", error instanceof Error ? error.stack : "No stack");
+    console.error(
+      "Error message:",
+      error instanceof Error ? error.message : error
+    );
+    console.error(
+      "Error stack:",
+      error instanceof Error ? error.stack : "No stack"
+    );
 
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unexpected server error",
-      details: error instanceof Error ? error.stack : String(error)
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Unexpected server error",
+        details: error instanceof Error ? error.stack : String(error),
+      },
+      { status: 500 }
+    );
   }
 }

@@ -20,7 +20,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 15, // 15 minutes
+        maxAge: 60 * 15,
       },
     },
   },

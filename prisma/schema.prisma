@@ -50,15 +50,19 @@ model Account {
 }
  
 
+enum ConsultationStatus {
+  ACTIVE
+  COMPLETE
+}
 
 model Consultation {
-  id           String   @id @default(cuid())
+  id           String             @id @default(cuid())
   gejala       String
   conversation Json     
   report       Json  
+  status       ConsultationStatus @default(ACTIVE)
   createdBy    String   
-  createdAt    DateTime @default(now())
-  
+  createdAt    DateTime           @default(now())
   // Relasi dengan User
   user User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
 }
