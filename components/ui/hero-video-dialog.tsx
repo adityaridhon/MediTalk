@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Play, XIcon } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
-import Image from "next/image"
+import { useState } from "react";
+import { Play, XIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import Image from "next/image";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 type AnimationStyle =
   | "from-bottom"
@@ -15,14 +15,14 @@ type AnimationStyle =
   | "from-right"
   | "fade"
   | "top-in-bottom-out"
-  | "left-in-right-out"
+  | "left-in-right-out";
 
 interface HeroVideoProps {
-  animationStyle?: AnimationStyle
-  videoSrc: string
-  thumbnailSrc: string
-  thumbnailAlt?: string
-  className?: string
+  animationStyle?: AnimationStyle;
+  videoSrc: string;
+  thumbnailSrc: string;
+  thumbnailAlt?: string;
+  className?: string;
 }
 
 const animationVariants = {
@@ -66,7 +66,7 @@ const animationVariants = {
     animate: { x: 0, opacity: 1 },
     exit: { x: "100%", opacity: 0 },
   },
-}
+};
 
 export function HeroVideoDialog({
   animationStyle = "from-center",
@@ -75,8 +75,8 @@ export function HeroVideoDialog({
   thumbnailAlt = "Video thumbnail",
   className,
 }: HeroVideoProps) {
-  const [isVideoOpen, setIsVideoOpen] = useState(false)
-  const selectedAnimation = animationVariants[animationStyle]
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const selectedAnimation = animationVariants[animationStyle];
 
   return (
     <div className={cn("relative", className)}>
@@ -118,7 +118,7 @@ export function HeroVideoDialog({
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
-                setIsVideoOpen(false)
+                setIsVideoOpen(false);
               }
             }}
             onClick={() => setIsVideoOpen(false)}
@@ -147,5 +147,5 @@ export function HeroVideoDialog({
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
