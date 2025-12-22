@@ -82,11 +82,7 @@ export const useVapi = ({ consultationId, gejala }: UseVapiProps) => {
           if (message.type === "transcript" && message.transcript) {
             setLastActivity(Date.now());
 
-            const timestamp = new Date().toLocaleTimeString("id-ID", {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-            });
+            const timestamp = new Date().toISOString();
 
             const speaker: "assistant" | "user" =
               message.role === "assistant" ? "assistant" : "user";
@@ -104,7 +100,7 @@ export const useVapi = ({ consultationId, gejala }: UseVapiProps) => {
             const conversationMessage: ConversationMessage = {
               role: speaker,
               content: message.transcript || "",
-              timestamp: new Date().toISOString(),
+              timestamp,
             };
 
             setConversationMessages((prev) => {

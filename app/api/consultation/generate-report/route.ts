@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { decrypt, encrypt } from "@/lib/encryption";
 import Groq from "groq-sdk";
 
-// Init GROQ key
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// POST for generate reprot
+// POST untuk generate report
 export async function POST(request: NextRequest) {
   try {
     const groqApiKey = process.env.GROQ_API_KEY;
@@ -94,10 +94,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (
-      !consultation.conversation ||
-      (consultation.conversation as any[]).length === 0
-    ) {
+    const decryptedConversation = consultation.conversation
+      ? decrypt(consultation.conversation)
+      : null;
+
+    if (!decryptedConversation || decryptedConversation.length === 0) {
       return NextResponse.json(
         {
           success: false,
@@ -107,13 +108,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const conversation = consultation.conversation as Array<{
+    const conversation = decryptedConversation as Array<{
       role: "assistant" | "user";
       content: string;
       timestamp: string;
     }>;
 
-    // Formatting pesan conversation
     const conversationText = conversation
       .map(
         (msg) =>
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       conversationText.substring(0, 300) + "..."
     );
 
-    // Prompt generate reprot
+    // Prompt generate report
     const prompt = `Anda adalah dokter profesional yang ahli dalam menganalisis percakapan konsultasi medis. 
 Buatlah laporan konsultasi medis berdasarkan percakapan antara pasien dan AI medis.
 
@@ -320,15 +320,14 @@ Buatlah laporan medis dalam format JSON sesuai instruksi.`;
       },
     };
 
-    console.log("Final report structure:", Object.keys(finalReport));
-    console.log("Updating consultation in database...");
+    const encryptedReport = encrypt(finalReport);
 
     // Save ke db dan update status ke COMPLETE
     try {
       const updatedConsultation = await prisma.consultation.update({
         where: { id: consultationId },
         data: {
-          report: finalReport,
+          report: encryptedReport,
           status: "COMPLETE",
         },
       });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { encrypt, decrypt } from "@/lib/encryption";
 
 // Get all consultations
 export async function GET(request: NextRequest) {
@@ -40,9 +41,17 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    const decryptedConsultations = consultations.map((consultation) => ({
+      ...consultation,
+      conversation: consultation.conversation
+        ? decrypt(consultation.conversation)
+        : null,
+      report: consultation.report ? decrypt(consultation.report) : null,
+    }));
+
     return NextResponse.json({
       success: true,
-      data: consultations,
+      data: decryptedConsultations,
     });
   } catch (error) {
     console.error("Error fetching consultations:", error);
@@ -84,9 +93,7 @@ export async function POST(request: NextRequest) {
     const consultation = await prisma.consultation.create({
       data: {
         gejala: gejala.trim(),
-        conversation: [],
         status: "ACTIVE",
-        report: [],
         createdBy: user.id,
       },
       include: {

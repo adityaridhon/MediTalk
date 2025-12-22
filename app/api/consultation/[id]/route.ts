@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { encrypt, decrypt } from "@/lib/encryption";
 
 // Get consultation by ID
 export async function GET(
@@ -57,9 +58,17 @@ export async function GET(
       );
     }
 
+    const decryptedConsultation = {
+      ...consultation,
+      conversation: consultation.conversation
+        ? decrypt(consultation.conversation)
+        : null,
+      report: consultation.report ? decrypt(consultation.report) : null,
+    };
+
     return NextResponse.json({
       success: true,
-      data: consultation,
+      data: decryptedConsultation,
       status: consultation.status,
     });
   } catch (error) {

@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Consultation" ALTER COLUMN "conversation" DROP NOT NULL,
+ALTER COLUMN "conversation" SET DATA TYPE TEXT,
+ALTER COLUMN "report" DROP NOT NULL,
+ALTER COLUMN "report" SET DATA TYPE TEXT;

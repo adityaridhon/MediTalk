@@ -58,8 +58,8 @@ enum ConsultationStatus {
 model Consultation {
   id           String             @id @default(cuid())
   gejala       String
-  conversation Json     
-  report       Json  
+  conversation String?  @db.Text // Ubah dari Json ke Text
+  report       String?  @db.Text // Ubah dari Json ke Text
   status       ConsultationStatus @default(ACTIVE)
   createdBy    String   
   createdAt    DateTime           @default(now())

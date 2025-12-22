@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { encrypt } from "@/lib/encryption";
 
-// Save consultation conversation ke DB
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -46,15 +45,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const encryptedConversation = encrypt(conversation);
+
     const updatedConsultation = await prisma.consultation.update({
       where: {
         id: consultationId,
       },
       data: {
-        conversation: conversation, 
+        conversation: encryptedConversation,
       },
     });
-
 
     return NextResponse.json({
       success: true,
@@ -64,7 +64,6 @@ export async function POST(request: NextRequest) {
         conversationLength: conversation.length,
       },
     });
-
   } catch (error) {
     console.error("Error saving conversation:", error);
     return NextResponse.json(

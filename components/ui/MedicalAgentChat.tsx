@@ -87,6 +87,7 @@ export function MedicalAgentChat({
       return date.toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
+        timeZone: "Asia/Makassar",
       });
     } catch (error) {
       console.error("Error formatting timestamp:", error);
