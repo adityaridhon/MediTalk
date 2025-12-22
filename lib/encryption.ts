@@ -13,7 +13,7 @@ if (ENCRYPTION_KEY.length < 32) {
 const KEY = crypto.scryptSync(ENCRYPTION_KEY, "meditalk-salt", 32);
 const ALGORITHM = "aes-256-gcm";
 
-export const encrypt = (data: any): string => {
+export const encrypt = (data: unknown): string => {
   if (!data) return "";
 
   try {
@@ -39,7 +39,7 @@ export const encrypt = (data: any): string => {
   }
 };
 
-export const decrypt = (encryptedData: string): any => {
+export const decrypt = (encryptedData: string): unknown => {
   if (!encryptedData) return null;
 
   try {

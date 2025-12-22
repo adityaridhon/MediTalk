@@ -98,7 +98,12 @@ export async function POST(request: NextRequest) {
       ? decrypt(consultation.conversation)
       : null;
 
-    if (!decryptedConversation || decryptedConversation.length === 0) {
+    // Type guard untuk memastikan decryptedConversation adalah array
+    if (
+      !decryptedConversation ||
+      !Array.isArray(decryptedConversation) ||
+      decryptedConversation.length === 0
+    ) {
       return NextResponse.json(
         {
           success: false,

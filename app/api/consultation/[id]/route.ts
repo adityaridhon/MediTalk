@@ -82,7 +82,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -90,6 +90,8 @@ export async function PATCH(
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const { id } = await params;
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -101,7 +103,7 @@ export async function PATCH(
 
     // Verifikasi ownership
     const existingConsultation = await prisma.consultation.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingConsultation) {
@@ -116,7 +118,7 @@ export async function PATCH(
     }
 
     const consultation = await prisma.consultation.update({
-      where: { id: params.id },
+      where: { id },
       data: { status: "COMPLETE" },
       include: {
         user: {

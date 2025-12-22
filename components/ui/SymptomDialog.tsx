@@ -12,7 +12,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { FaUserDoctor, FaSpinner } from "react-icons/fa6";
-import { IoClose } from "react-icons/io5";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 interface CreateConsultationDialogProps {
