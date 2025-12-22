@@ -1,10 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Simplified middleware - removed auth import to reduce bundle size
-// Auth will be checked in server components instead
+const protectedRoutes = ["/consultation"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Check auth for protected routes (lightweight - only check cookie)
+  if (protectedRoutes.some((route) => pathname.startsWith(route))) {
+    // NextAuth stores session in cookies with key "authjs.session-token" or "next-auth.session-token"
+    const sessionToken =
+      request.cookies.get("authjs.session-token")?.value ||
+      request.cookies.get("next-auth.session-token")?.value ||
+      request.cookies.get("__Secure-authjs.session-token")?.value ||
+      request.cookies.get("__Secure-next-auth.session-token")?.value;
+
+    // If no session token, redirect to home with login popup
+    if (!sessionToken) {
+      const url = new URL("/", request.url);
+      url.searchParams.set("login", "true");
+      url.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(url);
+    }
+  }
 
   // Add CORS headers for API routes
   if (pathname.startsWith("/api/")) {
@@ -25,8 +42,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/api/:path*",
-    "/((?!_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/api/:path*", "/((?!_next/static|_next/image|favicon.ico).*)"],
 };
