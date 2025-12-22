@@ -1,61 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
 
-const ProtectedRoutes = ["/consultation"];
-const API_ROUTES_WITH_TIMEOUT = ["/api/consultation"];
+// Simplified middleware - removed auth import to reduce bundle size
+// Auth will be checked in server components instead
 
 export async function middleware(request: NextRequest) {
-  try {
-    const { pathname } = request.nextUrl;
+  const { pathname } = request.nextUrl;
 
-    // Add timeout for API routes
-    if (API_ROUTES_WITH_TIMEOUT.some((route) => pathname.startsWith(route))) {
-      const response = NextResponse.next();
-      response.headers.set("X-API-Timeout", "30000"); // 30 seconds
-
-      // Add CORS headers for better API handling
-      response.headers.set("Access-Control-Allow-Origin", "*");
-      response.headers.set(
-        "Access-Control-Allow-Methods",
-        "GET, POST, PUT, DELETE, OPTIONS"
-      );
-      response.headers.set(
-        "Access-Control-Allow-Headers",
-        "Content-Type, Authorization"
-      );
-
-      return response;
-    }
-
-    // Auth logic with timeout
-    const authPromise = auth();
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error("Auth timeout")), 5000);
-    });
-
-    const session = (await Promise.race([authPromise, timeoutPromise]).catch(
-      () => null
-    )) as any;
-    const isLoginedIn = !!session?.user;
-
-    // Untuk redirect ke home dengan popup login jika mau akses konsultasi tapi belum login
-    if (
-      !isLoginedIn &&
-      ProtectedRoutes.some((route) => pathname.startsWith(route))
-    ) {
-      const url = new URL("/", request.url);
-      url.searchParams.set("login", "true");
-      url.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(url);
-    }
-
-    return NextResponse.next();
-  } catch (error) {
-    console.error("Middleware error:", error);
-    return NextResponse.next();
+  // Add CORS headers for API routes
+  if (pathname.startsWith("/api/")) {
+    const response = NextResponse.next();
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    response.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+    );
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
+    return response;
   }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|.*\\.png$).*)"],
+  matcher: [
+    "/api/:path*",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ],
 };
