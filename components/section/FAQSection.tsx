@@ -3,7 +3,7 @@ import FaqAccordion from "@/components/ui/faq-accordion";
 
 const FAQSection = () => {
   return (
-    <section className="flex flex-col pb-14 mx-20 md:mx-0" id="faq">
+    <section className="flex flex-col pb-14 mx-10 md:mx-0" id="faq">
       <h1 className="text-3xl md:text-4xl font-bold text-center italic">
         Frequently Asked <span className="text-primary">Questions</span>
       </h1>

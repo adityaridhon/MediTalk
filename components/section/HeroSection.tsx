@@ -29,10 +29,10 @@ const HeroSection = () => {
   };
 
   return (
-    <section id="beranda">
-      <div className="hero-section flex flex-col-reverse md:flex-row items-center justify-center gap-10 my-20 mx-20 md:mx-0">
+    <section id="beranda" className="max-w-6xl mx-auto">
+      <div className="hero-section flex flex-col-reverse md:flex-row items-center justify-center gap-10 my-20 mx-12 md:mx-0">
         <div className="caption max-w-xl text-center md:text-left space-y-4">
-          <div className="inline-flex items-center justify-center bg-gradient-to-br from-primary to-primary/50 rounded-full px-4 py-1.5 hover:shadow-lg transition-transform duration-300">
+          <div className="inline-flex items-center justify-center bg-linear-to-br from-primary to-primary/50 rounded-full px-4 py-1.5 hover:shadow-lg transition-transform duration-300">
             <h3 className="text-white text-md flex items-center">
               Selamat datang di Meditalk{" "}
               <FaUserDoctor className="inline-block ml-1 mb-0.5" />

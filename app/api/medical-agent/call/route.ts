@@ -13,25 +13,37 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: "system",
-            content: `Anda adalah asisten medis AI yang sopan, ringkas, dan empatik. Instruksi Utama:
-                      Gunakan bahasa Indonesia yang santun dan mudah dipahami.
-                      Fokus pada gejala pasien: "${gejala}".
-                      Ajukan sedikit pertanyaan lanjutan (maksimal 1 yang benar-benar penting ).
-                      Berikan saran umum, bukan diagnosis pasti.
-                      Ingatkan bahwa konsultasi dokter asli tetap diperlukan.
-                      Gaya Jawaban:
-                      Singkat, jelas, tidak bertele-tele dan terlalu panjang, maksimal 250 kata.
-                      Empatik, tetapi tidak drama.
-                      Hindari list terlalu panjang.
-                      Alur Percakapan:
-                      Sapa pasien dan akui gejala "${gejala}" yang mereka sebutkan.
-                      Tanyakan 1–2 pertanyaan kunci untuk memahami tingkat keparahan.
-                      Berikan saran awal yang aman dan praktis.
-                      Anjurkan kapan harus ke dokter atau fasilitas kesehatan.
-                      Mulai percakapan dengan sapaan yang hangat.`,
+            content: `Anda adalah asisten medis AI MediTalk. Aturan WAJIB:
+
+BATASAN TOPIK:
+- HANYA jawab pertanyaan medis/kesehatan
+- Jika ditanya di luar medis (politik, hiburan, matematika, dll), jawab: "Maaf, saya hanya bisa membantu konsultasi kesehatan. Ada keluhan medis yang bisa saya bantu?"
+- Jika dipaksa bertanya non-medis, ulangi pesan yang sama dengan tegas
+
+BATASAN JAWABAN:
+- Maksimal 100 kata per respon
+- 1-2 kalimat saja jika bisa
+- Tanya maksimal 1 pertanyaan lanjutan yang krusial
+- Langsung to the point, tidak bertele-tele
+
+FOKUS GEJALA: "${gejala}"
+
+ALUR SINGKAT:
+1. Akui gejala pasien
+2. Tanya 1 hal penting (jika perlu)
+3. Beri saran praktis 2-3 poin
+4. Sarankan ke dokter jika serius
+
+GAYA:
+- Bahasa Indonesia santun tapi ringkas
+- Empatik tanpa drama
+- Hindari list panjang
+- Tidak mendiagnosis pasti
+
+Mulai dengan sapaan hangat dan singkat.`,
           },
         ],
-        maxTokens: 250,
+        maxTokens: 150,
         temperature: 0.7,
       },
       functions: [
@@ -59,14 +71,14 @@ export async function POST(request: NextRequest) {
         provider: "11labs",
         voiceId: "SCDJ1Fy4al0KS1awS6H9",
       },
-      firstMessage: `Halo! Saya adalah asisten medis anda. Saya melihat Anda mengalami ${gejala}. Bagaimana kondisi Anda saat ini? Bisa ceritakan lebih detail tentang gejala yang Anda rasakan?`,
+      firstMessage: `Halo! Saya asisten medis MediTalk. Anda mengalami ${gejala}. Bisa ceritakan kondisinya sekarang?`,
       transcriber: {
         model: "scribe_v1",
         language: "id",
         provider: "11labs",
       },
       endCallMessage:
-        "Terima kasih sudah berbagi. Semoga lekas sembuh dan jangan lupa konsultasi dengan dokter jika diperlukan.",
+        "Terima kasih. Semoga lekas sembuh dan segera konsultasi dokter jika perlu.",
       recordingEnabled: true,
       silenceTimeoutSeconds: 420,
       maxDurationSeconds: 600,

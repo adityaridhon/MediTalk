@@ -28,7 +28,7 @@ const cardAbout = [
 const AboutSection = () => {
   return (
     <section className="max-w-6xl mx-auto" id="tentang-kami">
-      <div className="flex flex-col md:flex-row justify-center items-center gap-10 my-20 mx-20 md:mx-0">
+      <div className="flex flex-col md:flex-row justify-center items-center gap-10 my-20 mx-12 md:mx-0">
         <div className="img">
           <Image
             src="/assets/consult.svg"
