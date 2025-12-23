@@ -7,13 +7,12 @@ Dibangun dengan **Next.js 15**, **Auth.js**, **Prisma**, and **ShadCN UI**.
 
 ---
 
-## 🚀 Fitur Utama (Rencana)
+## Fitur Utama (Rencana)
 
 | Versi  | Deskripsi                                    |
 | ------ | -------------------------------------------- |
 | v0.1.0 | Setup project, Auth (Google), Front-End base |
 | v0.2.0 | Konsultasi dengan Agen AI (MVP)              |
-| v0.3.0 | Multilingual support (EN/ID)                 |
 | v1.0.0 | Rilis dan optimasi sistem                    |
 
 ---
@@ -31,7 +30,7 @@ Dibangun dengan **Next.js 15**, **Auth.js**, **Prisma**, and **ShadCN UI**.
 
 ---
 
-## 🧩 Tech Stack
+## Tech Stack
 
 - **Frontend**: Next.js 15, TailwindCSS, ShadCN UI
 - **Backend**: Next.js Route Handlers + Prisma (PostgreSQL via Neon)
@@ -42,7 +41,7 @@ Dibangun dengan **Next.js 15**, **Auth.js**, **Prisma**, and **ShadCN UI**.
 
 ---
 
-## ⚙️ Langkah instalasi
+## Langkah instalasi
 
 ```bash
 git clone https://github.com/adityaridhon/meditalk.git
