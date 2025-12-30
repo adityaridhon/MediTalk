@@ -228,9 +228,6 @@ Buatlah laporan medis dalam format JSON sesuai instruksi.`;
     try {
       report = JSON.parse(cleanedContent);
     } catch (parseError) {
-      console.error("JSON parse error:", parseError);
-      console.error("Failed content:", cleanedContent);
-
       const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         try {
