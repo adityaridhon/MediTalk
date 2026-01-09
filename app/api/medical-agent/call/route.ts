@@ -69,7 +69,7 @@ Mulai dengan sapaan hangat dan singkat.`,
       voice: {
         model: "eleven_turbo_v2_5",
         provider: "11labs",
-        voiceId: "SCDJ1Fy4al0KS1awS6H9",
+        voiceId: "RWiGLY9uXI70QL540WNd",
       },
       firstMessage: `Halo! Saya asisten medis MediTalk. Anda mengalami ${gejala}. Bisa ceritakan kondisinya sekarang?`,
       transcriber: {
